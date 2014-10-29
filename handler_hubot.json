@@ -1,0 +1,14 @@
+{
+  "hubot": {
+    "host": "localhost",
+    "port": 80,
+    "timeout": 5,
+    "room": 1234
+  },
+  "handlers": {
+    "hubot": {
+      "type": "pipe",
+      "command": "/etc/sensu/handlers/hubot_handler.rb"
+    }
+  }
+}
