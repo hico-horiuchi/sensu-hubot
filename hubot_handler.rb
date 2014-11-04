@@ -22,6 +22,10 @@ class HubotHandler < Sensu::Handler
     settings['hubot']['timeout'] || 5
   end
 
+  def retry_number
+    settings['hubot']['retry'] || 5
+  end
+
   def handle
     metrics = {
       client: @event['client']['name'],
@@ -30,27 +34,32 @@ class HubotHandler < Sensu::Handler
       status: @event['check']['status'],
       occurrences: @event['occurrences']
     }
+    success = false
 
-    begin
-      timeout(time_out) do
-        uri = URI "http://#{host}:#{port}/sensu?room=#{room}"
-        http = Net::HTTP.new uri.host, uri.port
-        request = Net::HTTP::Post.new uri, 'content-type' => 'application/json; charset=utf-8'
-        request.body = JSON.dump metrics
+    retry_number.times do
+      begin
+        timeout(time_out) do
+          uri = URI "http://#{host}:#{port}/sensu?room=#{room}"
+          http = Net::HTTP.new uri.host, uri.port
+          request = Net::HTTP::Post.new uri, 'content-type' => 'application/json; charset=utf-8'
+          request.body = JSON.dump metrics
 
-        response = http.request request
-        if response.code == '200'
-          puts "request metrics #=> #{metrics}"
-          puts "response body #=> #{response.body}"
-          puts "hubot post ok."
-        else
-          puts "request metrics #=> #{metrics}"
-          puts "response body #=> #{response.body}"
-          puts "hubot post failure. status error code #=> #{response.code}"
+          response = http.request request
+          if response.code == '200'
+            puts "request metrics #=> #{metrics}"
+            puts "response body #=> #{response.body}"
+            puts "hubot post ok."
+            success = true
+          else
+            puts "request metrics #=> #{metrics}"
+            puts "response body #=> #{response.body}"
+            puts "hubot post failure. status error code #=> #{response.code}"
+          end
         end
+      rescue Timeout::Error
+        puts "hubot timeout error."
       end
-    rescue Timeout::Error
-      puts "hubot timeout error."
+      break if  success
     end
   end
 end
