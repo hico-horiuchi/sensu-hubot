@@ -14,6 +14,10 @@ class HubotHandler < Sensu::Handler
     settings['hubot']['port'] || '80'
   end
 
+  def https
+    settings['hubot']['https'] || false
+  end
+
   def room
     settings['hubot']['room']
   end
@@ -39,7 +43,7 @@ class HubotHandler < Sensu::Handler
     retry_number.times do
       begin
         timeout(time_out) do
-          uri = URI "http://#{host}:#{port}/sensu?room=#{room}"
+          uri = URI "http#{'s' if https}://#{host}:#{port}/sensu?room=#{room}"
           http = Net::HTTP.new uri.host, uri.port
           request = Net::HTTP::Post.new uri, 'content-type' => 'application/json; charset=utf-8'
           request.body = JSON.dump metrics
