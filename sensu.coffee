@@ -18,7 +18,7 @@ module.exports = (robot) ->
     payload = req.body
     res.send 400 unless room
 
-    if payload.occurrences is 1 and payload.status > 0
+    if payload.occurrences is 1 and payload.status > 1
       msg = "Alert of #{payload.check} occuerrd"
       msg += " in #{payload.client}.\n"
       msg += "```\n#{payload.output}\n```"
